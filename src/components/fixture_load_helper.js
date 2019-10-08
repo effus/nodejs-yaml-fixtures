@@ -4,17 +4,30 @@ const fs   = require('fs');
 const path = require('path');
 const JsYaml = require('js-yaml');
 
-const MsSqlQueryHelper = require('./ms_sql_query_helper.js');
 const chalk = require('chalk');
 
 const rootDir = path.resolve(__dirname) + '/../../';
 
 const FixtureLoadHelper = {
 
+    config: null,
     loadedFixtures: {},
-    queries: [], // shared queries stack
+    instructions: [], // shared db instructions stack
 
-    load: (fixtureName) => {
+    /**
+     * @param config Object
+     * @returns FixtureLoadHelper
+     */
+    setConfig: function(config) {
+        this.config = config;
+        return this;
+    },
+
+    /**
+     * @param config {{db: Object, fixtures: Object}}
+     * @param fixtureName {string}
+     */
+    load: function (config, fixtureName) {
         return new Promise((resolve, reject) => {
             // load fixture file
             // get dependencies
@@ -26,40 +39,60 @@ const FixtureLoadHelper = {
             }
             FixtureLoadHelper.loadedFixtures[fixtureName] = {};
             const afterLoadDependencies = (fixture) => {
-                FixtureLoadHelper.queries.push(MsSqlQueryHelper.clearTableQuery(
-                    fixture.table,
-                    Array.isArray(fixture.relations) && fixture.relations.length > 0
-                ));
+                FixtureLoadHelper.instructions.push({
+                    type: 'clear', 
+                    target: fixture.table, 
+                    hasRelations: Array.isArray(fixture.relations) && fixture.relations.length > 0
+                });
                 if (fixture.auto_increment === true) {
-                    FixtureLoadHelper.queries.push(MsSqlQueryHelper.identityInsertToggle(fixture.table, true));
-                    FixtureLoadHelper.queries.push(MsSqlQueryHelper.setDateFormat('ymd'));
+                    FixtureLoadHelper.instructions.push({
+                        type: 'identity',
+                        target: fixture.table, 
+                        flag: true
+                    });
+                    FixtureLoadHelper.instructions.push({
+                        type: 'dateformat',
+                        mask: 'ymd'
+                    });
                 }
                 for (let i in fixture.data) {
-                    FixtureLoadHelper.queries.push(MsSqlQueryHelper.insertRow(fixture.table, fixture.data[i]));
+                    FixtureLoadHelper.instructions.push({
+                        type: 'insert',
+                        target: fixture.table,
+                        data: fixture.data[i]
+                    });
                 }
                 if (fixture.auto_increment === true) {
-                    FixtureLoadHelper.queries.push(MsSqlQueryHelper.identityInsertToggle(fixture.table, false));
+                    FixtureLoadHelper.instructions.push({
+                        type: 'identity',
+                        target: fixture.table, 
+                        flag: false
+                    });
                 }
-                console.debug(chalk.green('Load fixture: '), fixtureName);
             };
 
-            FixtureLoadHelper.getFileContents('fixtures/' + fixtureName + '.yml')
+            const recursivelyLoad = (dependencyFixtureName) => {
+                return FixtureLoadHelper.load(config, dependencyFixtureName);
+            }
+
+            FixtureLoadHelper.getFileContents(config.fixtures.path + fixtureName)
                 .then((fixture) => {
                     if (!Array.isArray(fixture.dependencies)) {
                         afterLoadDependencies(fixture);
-                        return resolve();
+                        return resolve(FixtureLoadHelper.instructions);
                     }
                     if (fixture.dependencies.length === 0) {
                         afterLoadDependencies(fixture);
-                        return resolve();
+                        return resolve(FixtureLoadHelper.instructions);
                     }
-                    const promises = fixture.dependencies.map(FixtureLoadHelper.load);
+                    const promises = fixture.dependencies.map(recursivelyLoad);
                     Promise.all(promises)
                         .then(() => {
                             afterLoadDependencies(fixture);
-                            resolve();
+                            resolve(FixtureLoadHelper.instructions);
                         })
                         .catch(reject);
+                    
                 })
                 .catch(reject);
         });
@@ -72,11 +105,11 @@ const FixtureLoadHelper = {
      */
     getFileContents: (fixtureFile) => {
         return new Promise((resolve, reject) => {
-            if (!fs.existsSync(rootDir + fixtureFile)) {
-                console.error(chalk.red('Fixture not found'), rootDir + fixtureFile);
-                reject('Fixture not found: ' + rootDir + fixtureFile);
+            if (!fs.existsSync(fixtureFile)) {
+                console.error(chalk.red('Fixture not found'), fixtureFile);
+                reject('Fixture not found: ' + fixtureFile);
             }
-            const fixture = JsYaml.safeLoad(fs.readFileSync(rootDir + fixtureFile), 'utf8');
+            const fixture = JsYaml.safeLoad(fs.readFileSync(fixtureFile), 'utf8');
             if (FixtureLoadHelper.checkFormat(fixture) === false) {
                 reject('Fixture not parsed or has incorrect format');
             }

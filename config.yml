@@ -1,0 +1,10 @@
+db:
+  driver: mssql
+  server: 'ITW-004'
+  database: 'OrdersFromCACHE_local'
+  user: 'admin'
+  password: 'GemoTest(0)'
+  options:
+    reuseConnection: true
+fixtures:
+  path: 'fixtures/'
