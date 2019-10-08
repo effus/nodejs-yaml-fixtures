@@ -1,0 +1,10 @@
+db:
+  driver: mssql
+  server: 'MSSQL_SERVER'
+  database: 'your_datebase'
+  user: 'db_user'
+  password: 'user_password'
+  options:
+    reuseConnection: true
+fixtures:
+  path: 'fixtures/'
