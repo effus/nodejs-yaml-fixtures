@@ -24,9 +24,14 @@ const MsSqlQuery = {
                     reject(err);
                 } else {
                     this.isConnected = true;
-                    resolve();
+                    this.selectDb(dbParams.database).then(resolve).catch(reject);
                 }
             });
+        });
+    },
+    selectDb: function(dbName) {
+        return new Promise((resolve, reject) => {
+            this.execute('use ' + dbName, false).then(resolve).catch(reject);
         });
     },
     connect: function(dbParams) {

@@ -118,6 +118,27 @@ const MsSqlQueryHelper = {
         } else {
             throw Error('Unknown instruction type');
         }
+    },
+
+    /**
+     * @return {string}
+     */
+    getTableList: () => {
+        return `SELECT 
+        CONCAT(t.TABLE_SCHEMA, '.', t.TABLE_NAME) as tbl,
+        c.COLUMN_NAME as col, 
+        CONCAT(
+            c.DATA_TYPE, 
+            (CASE WHEN c.CHARACTER_MAXIMUM_LENGTH > 0 THEN CONCAT('(', c.CHARACTER_MAXIMUM_LENGTH, ') ') ELSE ' ' END), 
+            (CASE WHEN c.IS_NULLABLE = 'YES' THEN 'NULL ' ELSE 'NOT NULL ' END),
+            c.COLLATION_NAME
+        ) as col_type
+        --(CASE c.IS_NULLABLE WHEN 'YES' THEN ' NULL' ELSE ' NOT NULL' END)
+    FROM INFORMATION_SCHEMA.TABLES t 
+    INNER JOIN INFORMATION_SCHEMA.COLUMNS c ON c.TABLE_NAME = t.TABLE_NAME
+    WHERE TABLE_TYPE='BASE TABLE' 
+    ORDER BY tbl, c.COLUMN_NAME
+    `;
     }
 };
 

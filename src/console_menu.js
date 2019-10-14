@@ -4,6 +4,7 @@ const commandLineArgs = require('command-line-args');
 const Help = require('./components/help.js');
 const TableViewer = require('./components/table_viewer.js');
 const FixtureLoader = require('./components/fixture_loader.js');
+const DbDiffHelper = require('./components/db_diff_helper.js');
 
 const optionDefinitions = [
     { name: 'verbose', alias: 'v', type: Boolean },
@@ -12,6 +13,7 @@ const optionDefinitions = [
     { name: 'top', type: Number },
     { name: 'fixture', alias: 'f', type: String },
     { name: 'directory', alias: 'd', type: String },
+    { name: 'source', type: String },
 ];
 
 const options = commandLineArgs(optionDefinitions);
@@ -23,6 +25,8 @@ const ConsoleMenu = (config) => {
         TableViewer.view(config.db, options.table, options.top);
     } else if (options.mode === 'load') {
         FixtureLoader.loadFile(config, options.fixture);
+    } else if (options.mode === 'diff') {
+        DbDiffHelper.diff(options.source, config);
     } /*else if (options.mode === 'unload') {
         FixtureLoader.unloadFile(options.fixture);
     } else if (options.mode === 'load-all') {

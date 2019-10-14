@@ -45,10 +45,33 @@ const DbHelper = {
                     });
                 });
             } else {
-                reject('Unknown driver');
+                reject('DbHelper.applyInstructions error: Unknown driver');
             }
         });
-        
+    },
+
+    /**
+     * @param dbConfig Object
+     */
+    getTableList: (dbConfig) => {
+        return new Promise((resolve, reject) => {
+            if (dbConfig.driver === 'mssql') {
+                let tables = [];
+                MsSqlQuery.queryRows(dbConfig, MsSqlQueryHelper.getTableList()).then((result) => {
+                    for (let i in result) {
+                        tables.push({
+                            table: result[i].tbl,
+                            column: result[i].col,
+                            type: String(result[i].col_type).trim(),
+                        });
+                    }
+                    MsSqlQuery.disconnect();
+                    resolve(tables);
+                }).catch(reject);
+            } else {
+                reject('DbHelper.getTableList error: Unknown driver');
+            }
+        });
     }
 };
 
