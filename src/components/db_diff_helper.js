@@ -3,6 +3,7 @@
 const Config = require('./../config_loader.js');
 const DbHelper = require('./db_helper.js');
 const _ = require('lodash');
+const chalk = require('chalk');
 
 const DbDiffHelper = {
 
@@ -60,11 +61,25 @@ const DbDiffHelper = {
                     continue;
                 }
                 if (current[table][col] !== source[table][col]) {
-                    diff.source.unequal_column_types.push(table + '.' + col + '; current: ' + current[table][col] + ', source: ' + source[table][col]);
+                    diff.source.unequal_column_types.push({tbl: table + '.' + col, current: current[table][col], source: current[table][col]});
                 }
             }
         }
-        console.log('Compare result: ', diff);
+        console.log(chalk.green('--- Comparing result ---'));
+        console.log(chalk.blue('1. Current database difference'));
+        console.log(chalk.yellow('Not existed tables'), diff.current.not_existed_tables);
+        console.log(chalk.yellow('Not existed columns'), diff.current.not_existed_columns);
+        console.log(chalk.blue('2. Source database difference'));
+        console.log(chalk.yellow('Not existed tables'), diff.source.not_existed_tables);
+        console.log(chalk.yellow('Not existed columns'), diff.source.not_existed_columns);
+        console.log(chalk.blue('3. Unequal column types'));
+        for (let i in diff.source.unequal_column_types) {
+            const item = diff.source.unequal_column_types[i];
+            console.log('Table: ', item.tbl);
+            console.log('Cur:', chalk.yellow(item.current));
+            console.log('Src:', chalk.yellow(item.source));
+        }
+        //console.log('Compare result: ', diff);
     },
 
     /**

@@ -54,7 +54,7 @@ const MsSqlQuery = {
                 let result = [];
                 const request = new Request(sql, function(err, rowCount) {
                     if (err) {
-                        console.error('Execute: Request error', chalk.red(err));
+                        console.log('Execute: Request error', chalk.red(err));
                         return reject(err);
                     } else {
                         totalRows = rowCount;
@@ -72,7 +72,7 @@ const MsSqlQuery = {
                 request.on('requestCompleted', () => {
                     return resolve(result);
                 });
-                console.debug('Executing: ', chalk.gray(sql));
+                console.log('Executing: ', chalk.gray(sql));
 
                 this.connection.execSql(request);
             }).catch(reject);
