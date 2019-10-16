@@ -181,7 +181,7 @@ const MsSqlQueryHelper = {
             if (fieldsStr !== '') {
                 fieldsStr += ', ';
             }
-            fieldsStr += ' ' + field.column + ' ' + field.type;
+            fieldsStr += ' [' + field.column + '] ' + field.type;
             if (field.hasIdentity) {
                 fieldsStr += ' identity ';
             }
