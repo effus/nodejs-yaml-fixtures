@@ -78,6 +78,20 @@ const MsSqlQuery = {
             }).catch(reject);
         });
     },
+    
+    /**
+     * @param sql {string}
+     */
+    asyncExecute: async function(sql) {
+        await new Promise((resolve, reject) => {
+            MsSqlQuery.connect().then(() => {
+                MsSqlQuery.execute(sql).then(() => {
+                    resolve();
+                }).catch(reject);
+            }).catch(reject);
+        });
+        return true;
+    },
     queryRows: function(dbParams, sql) {
         return new Promise((resolve, reject) => {
             this.connect(dbParams).then(() => {

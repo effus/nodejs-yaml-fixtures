@@ -13,6 +13,8 @@ const FixtureLoader = {
             }).catch((error) => {
                 console.debug('Fixture loading result', chalk.red('failed'));
             });
+        }).catch((err) => {
+            console.log('FixtureLoader.loadFile: error', err);
         });
     },
     unloadFile: () => {

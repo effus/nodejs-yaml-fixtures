@@ -12,15 +12,17 @@ const ConfigLoader = {
     load: (configYml) => {
         return new Promise((resolve, reject) => {
             if (!configYml) {
-                configYml = __dirname + '/../../config.yml';
+                //configYml = __dirname + '/../../config.yml';
+                console.error(chalk.red('Config path not defined'));
+                return reject('Config path not defined');
             }
             if (!fs.existsSync(configYml)) {
                 console.error(chalk.red('Config not found'), configYml);
-                reject('Config not found: ' + configYml);
+                return reject('Config not found');
             }
             const config = JsYaml.safeLoad(fs.readFileSync(configYml), 'utf8');
             if (ConfigLoader.checkFormat(config) === false) {
-                reject('Config not parsed or has incorrect format');
+                return reject('Config not parsed or has incorrect format');
             }
             resolve(config);
         });

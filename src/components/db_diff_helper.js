@@ -1,6 +1,5 @@
 'use strict';
 
-const Config = require('./../config_loader.js');
 const DbHelper = require('./db_helper.js');
 const _ = require('lodash');
 const chalk = require('chalk');
@@ -60,8 +59,12 @@ const DbDiffHelper = {
                     diff.source.not_existed_columns.push(table + '.' + col);
                     continue;
                 }
-                if (current[table][col] !== source[table][col]) {
-                    diff.source.unequal_column_types.push({tbl: table + '.' + col, current: current[table][col], source: current[table][col]});
+                if (String(current[table][col]).trim() !== String(source[table][col]).trim()) {
+                    diff.source.unequal_column_types.push({
+                        tbl: table + '.' + col, 
+                        current: String(current[table][col]).trim(), 
+                        source: String(source[table][col]).trim()
+                    });
                 }
             }
         }
@@ -75,7 +78,7 @@ const DbDiffHelper = {
         console.log(chalk.blue('3. Unequal column types'));
         for (let i in diff.source.unequal_column_types) {
             const item = diff.source.unequal_column_types[i];
-            console.log('Table: ', item.tbl);
+            console.log('Table field: ', item.tbl);
             console.log('Cur:', chalk.yellow(item.current));
             console.log('Src:', chalk.yellow(item.source));
         }
@@ -83,23 +86,18 @@ const DbDiffHelper = {
     },
 
     /**
-     * @param {string} sourceConfigPath 
-     * @param {string} currentConfig 
+     * @param Object sourceConfi
+     * @param Object currentConfig 
      */
-    diff: function(sourceConfigPath, currentConfig) {
+    diff: function(sourceConfig, currentConfig) {
         const onError = (err) => {
             console.log('DbDiffHelper.diff', err);
         }
-        Config.load(__dirname + '/../../' + sourceConfigPath).then((sourceConfig) => {
-            DbHelper.getTableList(sourceConfig.db).then((sourceTableList) => {
-                DbHelper.getTableList(currentConfig.db).then((currentTableList) => {
-                    this.comparing(sourceTableList, currentTableList);
-                }).catch(onError);
+        DbHelper.getTableList(sourceConfig.db).then((sourceTableList) => {
+            DbHelper.getTableList(currentConfig.db).then((currentTableList) => {
+                this.comparing(sourceTableList, currentTableList);
             }).catch(onError);
-        
-        }).catch((error) => {
-            console.error('DbDiffHelper error', error);
-        });
+        }).catch(onError);
     }
 };
 
