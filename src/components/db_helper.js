@@ -33,18 +33,37 @@ const DbHelper = {
         return new Promise((resolve, reject) => {
             if (dbConfig.driver === 'mssql') {
                 let queries = [];
-                for (let i in instructions) {
-                    queries.push(MsSqlQueryHelper.parseInstruction(instructions[i]));
-                }
-                MsSqlQuery.connect(dbConfig).then(() => {
-                    MsSqlQuery.execute(queries.join(';' + "\n")).then(() => {
-                        MsSqlQuery.disconnect();
-                        resolve();
-                    }).catch((err) => {
-                        MsSqlQuery.disconnect();
-                        reject(err);
+                let truncates = [];
+                try {
+                    // clear instructions in reversed order and first in stack
+                    for (let i in instructions) {
+                        if (instructions[i].type === 'clear') {
+                            truncates.push(instructions[i]);
+                        }
+                    }
+                    truncates = truncates.reverse();
+                    for (let i in truncates) {
+                        queries.push(MsSqlQueryHelper.parseInstruction(truncates[i]));
+                    }
+                    // other instructions in direct order
+                    for (let i in instructions) {
+                        if (instructions[i].type === 'clear') {
+                            continue;
+                        }
+                        queries.push(MsSqlQueryHelper.parseInstruction(instructions[i]));
+                    }
+                    MsSqlQuery.connect(dbConfig).then(() => {
+                        MsSqlQuery.execute(queries.join(';' + "\n")).then(() => {
+                            MsSqlQuery.disconnect();
+                            resolve();
+                        }).catch((err) => {
+                            MsSqlQuery.disconnect();
+                            reject(err);
+                        });
                     });
-                });
+                } catch(e) {
+                    console.error('applyInstructions error', e);
+                }
             } else {
                 reject('DbHelper.applyInstructions error: Unknown driver');
             }
