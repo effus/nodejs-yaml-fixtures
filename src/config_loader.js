@@ -12,7 +12,6 @@ const ConfigLoader = {
     load: (configYml) => {
         return new Promise((resolve, reject) => {
             if (!configYml) {
-                //configYml = __dirname + '/../../config.yml';
                 console.error(chalk.red('Config path not defined'));
                 return reject('Config path not defined');
             }

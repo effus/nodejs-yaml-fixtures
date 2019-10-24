@@ -12,6 +12,7 @@ ${chalk.magenta('-m view --table=%table_name% --top=%number_of_top_rows%')} // v
 ${chalk.magenta('-m load -f %fixture_name%')} // load fixture 
 ${chalk.magenta('-m diff --source %source_db_config%')} // get difference between databases
 ${chalk.magenta('-m pull --source %source_db_config% --table %table_name%')} // load table structure from source database and apply to local database
+${chalk.magenta('-m build-fixture --source %source_db_config% --name %source_name%')} // load table structure from source database and apply to local database
         `);
     }
 };
