@@ -25,7 +25,7 @@
     "command-line-args": "^5.1.1",
     "fs": "0.0.1-security",
     "js-yaml": "^3.13.1",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "mssql": "^5.1.0",
     "mssql-query-builder": "^1.0.3",
     "sequelize": "^5.15.2",
